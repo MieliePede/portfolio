@@ -14,6 +14,11 @@ GUTENBERG_URL = "https://www.gutenberg.org/files/2701/2701-0.txt"
 _pool: asyncpg.Pool | None = None
 
 
+def _normalize_url(url: str) -> str:
+    # asyncpg doesn't understand SQLAlchemy's postgresql+asyncpg:// prefix
+    return url.replace("postgresql+asyncpg://", "postgresql://", 1)
+
+
 async def get_pool() -> asyncpg.Pool | None:
     global _pool
     if _pool is not None:
@@ -21,11 +26,8 @@ async def get_pool() -> asyncpg.Pool | None:
     url = os.getenv("DATABASE_URL")
     if not url:
         return None
-    try:
-        _pool = await asyncpg.create_pool(url, min_size=1, max_size=5)
-        return _pool
-    except Exception:
-        return None
+    _pool = await asyncpg.create_pool(_normalize_url(url), min_size=1, max_size=5)
+    return _pool
 
 
 async def ensure_table(pool: asyncpg.Pool) -> None:
