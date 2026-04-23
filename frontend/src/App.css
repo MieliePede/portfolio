@@ -136,6 +136,14 @@
 .link-pill:nth-child(2) { --pill-color: var(--accent4); }
 .link-pill:nth-child(3) { --pill-color: var(--accent2); }
 
+.fun-nav {
+  margin-top: 0.5rem;
+}
+
+.fun-pill {
+  --pill-color: var(--accent3);
+}
+
 .link-pill:hover {
   border-color: var(--pill-color);
   color: var(--pill-color);

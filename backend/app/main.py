@@ -1,12 +1,11 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
-load_dotenv()
+from app.ws_pg_activity import pg_activity_handler
 
-# DATABASE_URL = os.getenv("DATABASE_URL")
-# When ready: set up SQLAlchemy async engine here using DATABASE_URL
+load_dotenv()
 
 app = FastAPI(title="Portfolio API")
 
@@ -34,3 +33,8 @@ async def me():
             "email": "nikel.emile@gmail.com",
         },
     }
+
+
+@app.websocket("/ws/pg-activity")
+async def pg_activity_endpoint(ws: WebSocket):
+    await pg_activity_handler(ws)

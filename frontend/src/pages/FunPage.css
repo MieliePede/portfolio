@@ -1,0 +1,207 @@
+.fun-page {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  min-height: 100vh;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.fun-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.back-pill {
+  align-self: flex-start;
+  --pill-color: var(--accent4);
+}
+
+.fun-title {
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.fun-subtitle {
+  font-size: 1rem;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+}
+
+/* ── Card grid ──────────────────────────────────────────── */
+.fun-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .fun-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── Demo card ──────────────────────────────────────────── */
+.demo-card {
+  background: var(--surface);
+  border: 1.5px solid #333;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.demo-card:only-child {
+  grid-column: 1 / -1;
+}
+
+.demo-card-header {
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid #222;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.demo-card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.demo-card-desc {
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  line-height: 1.5;
+}
+
+.demo-card-body {
+  padding: 1.25rem 1.5rem;
+  flex: 1;
+  overflow-x: auto;
+}
+
+/* ── Status badge ───────────────────────────────────────── */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  border: 1px solid;
+  letter-spacing: 0.04em;
+}
+
+.status-badge--connected {
+  color: var(--accent3);
+  border-color: var(--accent3);
+  background: color-mix(in srgb, var(--accent3) 10%, transparent);
+}
+
+.status-badge--disconnected {
+  color: var(--accent1);
+  border-color: var(--accent1);
+  background: color-mix(in srgb, var(--accent1) 10%, transparent);
+}
+
+.status-badge--connecting {
+  color: var(--accent2);
+  border-color: var(--accent2);
+  background: color-mix(in srgb, var(--accent2) 10%, transparent);
+  animation: pulse-badge 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ── pg_stat_activity table ─────────────────────────────── */
+.pg-table-wrap {
+  overflow-x: auto;
+}
+
+.pg-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+}
+
+.pg-table th {
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+  color: var(--muted);
+  border-bottom: 1px solid #2a2a2a;
+  white-space: nowrap;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+}
+
+.pg-table td {
+  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid #1e1e1e;
+  color: var(--text);
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.pg-table tr.row-active td:first-child {
+  border-left: 2px solid var(--accent3);
+}
+
+.pg-table tr.row-active .cell-state {
+  color: var(--accent3);
+}
+
+.pg-table tr.row-idle-tx .cell-state {
+  color: var(--accent2);
+}
+
+.pg-table tr:last-child td {
+  border-bottom: none;
+}
+
+.pg-empty {
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.82rem;
+  padding: 1rem 0;
+}
+
+.pg-disconnected {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pg-disconnected p {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
