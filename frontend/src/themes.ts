@@ -85,6 +85,20 @@ export const themes: Theme[] = [
     },
   },
   {
+    id: 'starry-night',
+    name: 'Starry Night',
+    vars: {
+      '--bg': '#16225B',
+      '--surface': '#2F2D28',
+      '--accent1': '#CEAA46',
+      '--accent2': '#D0D3AD',
+      '--accent3': '#5D5146',
+      '--accent4': '#8b9fd4',
+      '--text': '#D0D3AD',
+      '--muted': '#5D5146',
+    },
+  },
+  {
     id: 'ouma',
     name: 'Ouma',
     vars: {
