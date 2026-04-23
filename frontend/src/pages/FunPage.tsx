@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import PgLiveQueryDemo from '../components/PgLiveQueryDemo'
+import TsvectorSearchDemo from '../components/TsvectorSearchDemo'
 import './FunPage.css'
 
 export default function FunPage() {
@@ -13,7 +13,7 @@ export default function FunPage() {
         <p className="fun-subtitle">Interactive demos &amp; experiments</p>
       </header>
       <div className="fun-grid">
-        <PgLiveQueryDemo />
+        <TsvectorSearchDemo />
       </div>
     </main>
   )
