@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import TsvectorSearchDemo from '../components/TsvectorSearchDemo'
+import LexemeFrequencyDemo from '../components/LexemeFrequencyDemo'
 import './FunPage.css'
 
 export default function FunPage() {
@@ -14,6 +15,7 @@ export default function FunPage() {
       </header>
       <div className="fun-grid">
         <TsvectorSearchDemo />
+        <LexemeFrequencyDemo />
       </div>
     </main>
   )

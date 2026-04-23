@@ -178,3 +178,21 @@ async def search(q: str = "", limit: int = 10) -> dict[str, Any]:
         }
     except asyncpg.InvalidTextRepresentationError:
         return {"results": [], "total": 0, "sql": sql_display, "error": "invalid_query"}
+
+
+@router.get("/lexemes")
+async def top_lexemes(limit: int = 40) -> dict[str, Any]:
+    pool = await get_pool()
+    if pool is None:
+        raise HTTPException(503, "No database connection")
+
+    rows = await pool.fetch(
+        """
+        SELECT word, ndoc, nentry
+        FROM ts_stat('SELECT search_vector FROM book_passages')
+        ORDER BY nentry DESC
+        LIMIT $1
+        """,
+        limit,
+    )
+    return {"lexemes": [dict(r) for r in rows]}
