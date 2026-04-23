@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { useTheme } from './useTheme'
+import ThemePicker from './ThemePicker'
 import './App.css'
 
 const ROLES = [
@@ -10,12 +12,13 @@ const ROLES = [
 ]
 
 const LINKS = [
-  { label: 'GitHub', href: 'https://github.com/emilenikel' },
+  // { label: 'GitHub', href: 'https://github.com/emilenikel' },
   { label: 'LinkedIn', href: 'https://linkedin.com/in/emilenikel' },
   { label: 'Email', href: 'mailto:nikel.emile@gmail.com' },
 ]
 
 export default function App() {
+  const { themeId, setThemeId, themes } = useTheme()
   const [roleIndex, setRoleIndex] = useState(0)
   const [displayed, setDisplayed] = useState('')
   const [deleting, setDeleting] = useState(false)
@@ -45,6 +48,8 @@ export default function App() {
         <div className="blob blob-2" />
         <div className="blob blob-3" />
       </div>
+
+      <ThemePicker themes={themes} current={themeId} onChange={setThemeId} />
 
       <main className="hero">
         <div className="hero-inner">

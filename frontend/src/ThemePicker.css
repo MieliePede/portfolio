@@ -1,0 +1,78 @@
+.tp-wrap {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.tp-toggle {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  border: 1.5px solid #333;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.tp-toggle:hover {
+  border-color: var(--accent1);
+  transform: rotate(20deg);
+}
+
+.tp-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  background: var(--surface);
+  border: 1.5px solid #333;
+  border-radius: 12px;
+  padding: 0.5rem;
+}
+
+.tp-swatch {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tp-swatch::before {
+  content: '';
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--s1) 50%, var(--s2) 50%);
+  outline: 2px solid var(--s-bg);
+  outline-offset: 1px;
+}
+
+.tp-swatch:hover {
+  background: color-mix(in srgb, var(--accent1) 8%, transparent);
+}
+
+.tp-swatch--active {
+  border-color: var(--accent1);
+}
+
+.tp-swatch-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--text);
+  white-space: nowrap;
+}
