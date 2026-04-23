@@ -11,7 +11,7 @@ const ROLES = [
 
 const LINKS = [
   // { label: 'GitHub', href: 'https://github.com/emilenikel' },
-  { label: 'LinkedIn', href: 'https://linkedin.com/in/emilenikel' },
+  { label: 'LinkedIn', href: 'https://linkedin.com/in/emile-nikel' },
   { label: 'Email', href: 'mailto:nikel.emile@gmail.com' },
 ]
 
