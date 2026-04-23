@@ -1,0 +1,49 @@
+name: Deploy to Production
+
+# Runner requirements on self-hosted machine:
+#
+# The runner must be registered with the label "self-hosted" mapped to the
+# catthehacker Ubuntu image, which includes Git, Node.js, and Docker CLI:
+#
+#   GITEA_RUNNER_LABELS=self-hosted:docker://ghcr.io/catthehacker/ubuntu:act-22.04
+#
+# The runner container must also have the Docker socket mounted:
+#   volumes:
+#     - /var/run/docker.sock:/var/run/docker.sock
+#
+# Required Gitea secrets (Settings → Secrets):
+#   DATABASE_URL  postgresql+asyncpg://postgres:password@host.docker.internal:5432/portfoliodb
+#   SECRET_KEY    a long random string
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Write .env
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        run: |
+          {
+            echo "DATABASE_URL=$DATABASE_URL"
+            echo "SECRET_KEY=$SECRET_KEY"
+            echo "DEBUG=false"
+          } > .env
+
+      - name: Build and deploy
+        run: |
+          docker compose up -d --build --remove-orphans
+          docker image prune -f
+
+      - name: Verify containers are running
+        run: docker compose ps
