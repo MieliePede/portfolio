@@ -1,0 +1,4 @@
+emile.kifelse.dev {
+	encode gzip
+	reverse_proxy frontend:80
+}

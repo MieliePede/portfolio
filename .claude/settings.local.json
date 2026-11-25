@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(npm install *)",
-      "Bash(mkdir -p /c/Projects/emile-portfolio/backend/app/routers)",
-      "Bash(touch /c/Projects/emile-portfolio/backend/app/routers/__init__.py)"
-    ]
-  }
-}

@@ -2,7 +2,6 @@ import { Routes, Route } from 'react-router-dom'
 import { useTheme } from './useTheme'
 import ThemePicker from './ThemePicker'
 import HomePage from './pages/HomePage'
-import FunPage from './pages/FunPage'
 import './App.css'
 
 export default function App() {
@@ -20,7 +19,6 @@ export default function App() {
 
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/fun" element={<FunPage />} />
       </Routes>
     </div>
   )

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 
 const ROLES = [
   'Software Engineer',
@@ -57,9 +56,6 @@ export default function HomePage() {
             </a>
           ))}
         </nav>
-        <div className="fun-nav">
-          <Link to="/fun" className="link-pill fun-pill">✦ Fun Stuff</Link>
-        </div>
       </div>
     </main>
   )

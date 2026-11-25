@@ -1,10 +1,6 @@
-import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from app.ws_pg_activity import pg_activity_handler
-from app.routers.search import router as search_router
 
 load_dotenv()
 
@@ -16,8 +12,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.include_router(search_router)
 
 
 @app.get("/api/health")
@@ -36,8 +30,3 @@ async def me():
             "email": "nikel.emile@gmail.com",
         },
     }
-
-
-@app.websocket("/ws/pg-activity")
-async def pg_activity_endpoint(ws: WebSocket):
-    await pg_activity_handler(ws)

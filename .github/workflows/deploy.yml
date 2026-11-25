@@ -1,0 +1,50 @@
+name: Deploy
+
+# One-time server setup (Ubuntu/Debian with Docker + compose plugin installed):
+#   git clone https://github.com/MieliePede/portfolio.git ~/portfolio
+#   add the public half of SSH_KEY to ~/.ssh/authorized_keys
+#   DNS: A record emile.kifelse.dev -> server IP; open ports 80 and 443
+#
+# Repo secrets (Settings -> Secrets and variables -> Actions):
+#   SSH_HOST           server IP or hostname
+#   SSH_USER           user that owns ~/portfolio and can run docker
+#   SSH_KEY            private key (ed25519) for that user
+#   SSH_KNOWN_HOSTS    output of: ssh-keyscan <server>
+#   POSTGRES_PASSWORD  password of the "portfolio" db user. Postgres only reads it when
+#                      the db volume is first created; after that change it with
+#                      ALTER USER inside the db container, then update this secret.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency: deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519
+          # password goes over stdin so it never appears in a command line or on the server's disk
+          printf '%s\n' "$POSTGRES_PASSWORD" | ssh "$SSH_USER@$SSH_HOST" '
+            set -e
+            IFS= read -r POSTGRES_PASSWORD
+            export POSTGRES_PASSWORD
+            cd ~/portfolio
+            git pull --ff-only
+            docker compose up -d --build --remove-orphans
+            docker image prune -f
+            docker compose ps
+          '
