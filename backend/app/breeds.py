@@ -7,6 +7,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import sys
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -229,7 +230,7 @@ CREATE TABLE IF NOT EXISTS breeds (
     name                  TEXT NOT NULL,
     size                  TEXT,
     weight                TEXT,
-    median_lifespan_years REAL,
+    median_lifespan_years DOUBLE PRECISION,
     brachycephalic        BOOLEAN NOT NULL,
     health_score          INT,
     grade                 TEXT,
@@ -246,6 +247,18 @@ CREATE TABLE IF NOT EXISTS breeds (
 )
 """
 
+# One-off fix for databases created before lifespan was DOUBLE PRECISION: REAL stored 15.4 as
+# 15.399999618530273. Rounds the stored values while converting; does nothing once converted.
+MIGRATE_LIFESPAN = """
+DO $$ BEGIN
+    IF (SELECT data_type FROM information_schema.columns
+        WHERE table_name = 'breeds' AND column_name = 'median_lifespan_years') = 'real' THEN
+        ALTER TABLE breeds ALTER COLUMN median_lifespan_years TYPE DOUBLE PRECISION
+            USING round(median_lifespan_years::numeric, 2)::double precision;
+    END IF;
+END $$
+"""
+
 
 async def get_pool() -> asyncpg.Pool:
     global _pool
@@ -260,6 +273,10 @@ async def get_pool() -> asyncpg.Pool:
             max_size=5,
         )
         await pool.execute(SCHEMA)
+        try:
+            await pool.execute(MIGRATE_LIFESPAN)
+        except Exception:  # cosmetic fix only; never let it take the breed API down
+            log.exception("lifespan column migration failed")
         _pool = pool  # only cache a pool whose schema step worked, so failures retry cleanly
     return _pool
 
@@ -316,6 +333,13 @@ SORTS = {
 }
 
 
+def word_start_pattern(q: str) -> str:
+    r"""Postgres regex matching the search text at the start of a word, so "hip" finds
+    "Hip dysplasia" but not "Schipperke". \m is Postgres's start-of-word anchor; the text is
+    escaped so it can only match literally."""
+    return r"\m" + re.escape(q.strip())
+
+
 async def _pool_or_503() -> asyncpg.Pool:
     try:
         return await get_pool()
@@ -332,16 +356,15 @@ async def search_breeds(
     sort: str = Query("score", pattern="^(score|lifespan|name)$"),
 ) -> dict[str, Any]:
     pool = await _pool_or_503()
-    like = "%" + q.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
     rows = await pool.fetch(
         f"""
         SELECT {LIST_FIELDS} FROM breeds
-        WHERE (name ILIKE $1 OR EXISTS (SELECT 1 FROM unnest(conditions) c WHERE c ILIKE $1))
+        WHERE (name ~* $1 OR EXISTS (SELECT 1 FROM unnest(conditions) c WHERE c ~* $1))
           AND ($2::text IS NULL OR size = $2)
           AND ($3::boolean IS NULL OR brachycephalic = $3)
         ORDER BY {SORTS[sort]}
         """,
-        like, size, flat_faced,
+        word_start_pattern(q), size, flat_faced,
     )
     synced = await pool.fetchval("SELECT max(synced_at) FROM breeds")
     return {"breeds": [dict(r) for r in rows], "total": len(rows), "synced_at": synced}

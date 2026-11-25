@@ -234,14 +234,16 @@ async with conn.transaction():
         id: 'search',
         heading: 'Search',
         body: [
-          'With 155 rows, one table with the conditions in a text array is enough; no join tables or search engine. One query matches a breed name or any of its conditions, so "hip" finds every breed prone to hip dysplasia. Sort options come from a fixed list rather than user input, and the search text is escaped before it reaches the LIKE pattern.',
+          'With 155 rows, one table with the conditions in a text array is enough; no join tables or search engine. One query matches a breed name or any of its conditions, so "hip" finds every breed prone to hip dysplasia.',
+          'The first version matched anywhere in a word, so "hip" also found the Schipperke. Matching only at the start of a word fixed it: the search text is escaped so it can only match literally, then anchored with Postgres’s start-of-word marker. Sort options come from a fixed list rather than user input.',
         ],
         code: {
           language: 'sql',
-          code: `SELECT slug, name, health_score, grade, conditions
+          code: `-- $1 = '\\m' || escaped search text  ("\\m" = start of a word)
+SELECT slug, name, health_score, grade, conditions
 FROM breeds
-WHERE name ILIKE $1
-   OR EXISTS (SELECT 1 FROM unnest(conditions) c WHERE c ILIKE $1)
+WHERE name ~* $1
+   OR EXISTS (SELECT 1 FROM unnest(conditions) c WHERE c ~* $1)
 ORDER BY health_score DESC NULLS LAST, name;`,
         },
       },

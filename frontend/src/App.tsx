@@ -10,7 +10,10 @@ const DogBreedPage = lazy(() => import('./pages/DogBreedPage'))
 export default function App() {
   const {pathname} = useLocation()
   // client-side navigation keeps the old scroll position; start each page at the top
-  useEffect(() => window.scrollTo(0, 0), [pathname])
+  // block body on purpose: newer browsers return a Promise from scrollTo, and React would call it as a cleanup
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
 
   return (
     <Routes>

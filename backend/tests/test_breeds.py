@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from app.breeds import ALIASES, match_dogceo, validate_bhs_list  # noqa: E402
+from app.breeds import ALIASES, match_dogceo, validate_bhs_list, word_start_pattern  # noqa: E402
 
 TREE = {
     "beagle": [],
@@ -56,5 +56,19 @@ for bad in (
         pass
     else:
         raise AssertionError(f"accepted bad payload: {str(bad)[:80]}")
+
+# search text becomes a start-of-word regex in which every regex metacharacter is escaped,
+# so user input can only ever match literally (Postgres treats "\" + punctuation as a literal)
+assert word_start_pattern("  hip ") == r"\mhip"
+assert word_start_pattern("") == r"\m"
+for raw in (".*", "a|b", "(x)", "[a-z]", "a{2}", "^$", "\\", "+?"):
+    body = word_start_pattern(raw)[2:]
+    i = 0
+    while i < len(body):  # every metacharacter must be preceded by a backslash
+        if body[i] == "\\":
+            i += 2
+            continue
+        assert body[i] not in ".*|()[]{}^$\\+?", (raw, body)
+        i += 1
 
 print("test_breeds: all passed")
