@@ -38,6 +38,7 @@ export default function ProjectPage() {
             <VStack gap={3}>
               <HStack gap={2}>
                 <Button label="← Back to portfolio" variant="ghost" size="sm" href="/" />
+                {project.demo && <Button label="Open the live demo" variant="primary" size="sm" href={project.demo} />}
                 {project.repo && (
                   <Button label="View the code" variant="ghost" size="sm" href={project.repo} target="_blank" rel="noopener noreferrer" />
                 )}

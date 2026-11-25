@@ -87,6 +87,7 @@ export type Project = {
   summary: string
   stack: string[]
   repo?: string
+  demo?: string
   // planned projects show on the home page as "coming soon" and have no page yet
   status: 'published' | 'planned'
   sections: CaseStudySection[]
@@ -171,11 +172,87 @@ AuthenticationMethods publickey`,
     ],
   },
   {
-    slug: 'data-handling',
-    title: 'Data handling case study',
-    summary: 'Coming soon.',
-    stack: [],
-    status: 'planned',
-    sections: [],
+    slug: 'dog-breed-health',
+    title: 'Dog breed health explorer: combining two public APIs',
+    summary:
+      'A daily job pulls two public dog APIs, matches their breeds, and loads the result into Postgres, so anyone can search 155 breeds by name or by the health conditions they are prone to.',
+    stack: ['Python', 'FastAPI', 'PostgreSQL', 'asyncio', 'React', 'Astryx'],
+    repo: 'https://github.com/MieliePede/portfolio',
+    demo: '/dogs',
+    status: 'published',
+    sections: [
+      {
+        id: 'sources',
+        heading: 'Two sources, two jobs',
+        body: [
+          'Breed Health Score publishes 155 breeds with a 0–100 health score, a grade, median lifespan from a 584,734-dog UK study, a flat-face flag, and the four or five conditions each breed is most prone to. It is the source of truth. Its licence (CC-BY-4.0) requires a visible credit wherever the data appears, so every page that shows it carries one.',
+          'The Dog CEO API has no health data at all, only photos, so it is used for one thing: a gallery of extra photos per breed.',
+        ],
+      },
+      {
+        id: 'matching',
+        heading: 'Matching breed names across APIs',
+        body: [
+          'The two APIs name breeds differently. Breed Health Score uses slugs like "golden-retriever"; Dog CEO uses a parent and sub-breed, like "retriever/golden". Only 68 of the 155 breeds matched exactly.',
+          'Comparing names with the hyphens removed in both orders lines up most multi-word breeds automatically ("flat-coated-retriever" to "retriever/flatcoated"). A small, hand-checked alias table covers the rest, such as "bloodhound" to "hound/blood". That brought it to 118 of 155. The other 37 breeds simply are not in Dog CEO and keep Breed Health Score’s own photo.',
+          'The trap was partial matches. Dog CEO’s list for a parent breed includes all of its sub-breeds: 142 of its 144 "greyhound" photos are Italian greyhounds. So a parent only matches on its own when it has no sub-breeds, and loose word matching is ruled out entirely, otherwise the Bull Terrier page would fill up with generic terriers. Both rules have tests.',
+        ],
+        code: {
+          language: 'python',
+          code: `def match_dogceo(slug, tree):
+    if slug in ALIASES:                      # hand-checked exceptions
+        return ALIASES[slug]
+    c = compact(slug)                        # "german-shepherd-dog" -> "germanshepherd"
+    if c in tree and not tree[c]:            # whole parent, only if it has no sub-breeds
+        return c
+    for parent, subs in tree.items():
+        for sub in subs:
+            if c in (sub + parent, parent + sub):
+                return f"{parent}/{sub}"
+    return None                              # no guess: keep the source's own photo`,
+        },
+      },
+      {
+        id: 'sync',
+        heading: 'A sync job that never wipes good data',
+        body: [
+          'The backend syncs once a day inside the FastAPI process. Every deploy restarts the backend, so it only syncs on startup when the data is missing or more than a day old; redeploying does not hammer the source APIs.',
+          'Everything fetched is treated as untrusted input. If the breed list comes back short or malformed, the sync stops and the existing rows stay. A failed detail or photo request for one breed falls back to what is already known. The new data is written in a single transaction, and breeds that disappeared upstream are removed only after the list has passed validation.',
+        ],
+        code: {
+          language: 'python',
+          code: `breeds = payload.get("breeds")
+if not isinstance(breeds, list) or len(breeds) < 100:
+    raise ValueError("expected 100+ breeds")   # abort: keep yesterday's data
+...
+async with conn.transaction():
+    await conn.executemany(UPSERT, rows)
+    await conn.execute("DELETE FROM breeds WHERE slug <> ALL($1)", slugs)`,
+        },
+      },
+      {
+        id: 'search',
+        heading: 'Search',
+        body: [
+          'With 155 rows, one table with the conditions in a text array is enough; no join tables or search engine. One query matches a breed name or any of its conditions, so "hip" finds every breed prone to hip dysplasia. Sort options come from a fixed list rather than user input, and the search text is escaped before it reaches the LIKE pattern.',
+        ],
+        code: {
+          language: 'sql',
+          code: `SELECT slug, name, health_score, grade, conditions
+FROM breeds
+WHERE name ILIKE $1
+   OR EXISTS (SELECT 1 FROM unnest(conditions) c WHERE c ILIKE $1)
+ORDER BY health_score DESC NULLS LAST, name;`,
+        },
+      },
+      {
+        id: 'next',
+        heading: 'Next: is health score just lifespan?',
+        body: [
+          'The next step is a scatter plot of median lifespan against health, to find breeds that look healthy but do not live long enough to reach the conditions of old age.',
+          'There is a catch: the health score already includes a longevity component calculated from lifespan, so plotting the score against lifespan is partly circular. The database keeps the score’s three components separately, so the plot can use the condition-burden and conformation components instead, which are independent of lifespan.',
+        ],
+      },
+    ],
   },
 ]

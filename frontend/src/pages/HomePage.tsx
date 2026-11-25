@@ -132,7 +132,12 @@ export default function HomePage() {
                           {p.stack.join(' · ')}
                         </Text>
                       )}
-                      {p.status === 'published' && <Link href={`/projects/${p.slug}`}>Read the case study</Link>}
+                      {p.status === 'published' && (
+                        <HStack gap={4} wrap="wrap">
+                          <Link href={`/projects/${p.slug}`}>Read the case study</Link>
+                          {p.demo && <Link href={p.demo}>Open the live demo</Link>}
+                        </HStack>
+                      )}
                     </VStack>
                   </Card>
                 ))}
