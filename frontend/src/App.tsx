@@ -1,25 +1,20 @@
-import { Routes, Route } from 'react-router-dom'
-import { useTheme } from './useTheme'
-import ThemePicker from './ThemePicker'
+import {lazy, Suspense, useEffect} from 'react'
+import {Navigate, Route, Routes, useLocation} from 'react-router-dom'
 import HomePage from './pages/HomePage'
-import './App.css'
+
+// case studies pull in the code highlighter; keep it out of the home page bundle
+const ProjectPage = lazy(() => import('./pages/ProjectPage'))
 
 export default function App() {
-  const { themeId, setThemeId, themes } = useTheme()
+  const {pathname} = useLocation()
+  // client-side navigation keeps the old scroll position; start each page at the top
+  useEffect(() => window.scrollTo(0, 0), [pathname])
 
   return (
-    <div className="page">
-      <div className="blobs" aria-hidden="true">
-        <div className="blob blob-1" />
-        <div className="blob blob-2" />
-        <div className="blob blob-3" />
-      </div>
-
-      <ThemePicker themes={themes} current={themeId} onChange={setThemeId} />
-
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-      </Routes>
-    </div>
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/projects/:slug" element={<Suspense><ProjectPage /></Suspense>} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }
