@@ -15,6 +15,21 @@ export function pearson(xs: number[], ys: number[]): number {
   return sxy / Math.sqrt(sxx * syy)
 }
 
+/** Least-squares straight line through the points: y = slope * x + intercept. */
+export function linearFit(xs: number[], ys: number[]): {slope: number; intercept: number} {
+  const n = xs.length
+  const mx = xs.reduce((a, b) => a + b, 0) / n
+  const my = ys.reduce((a, b) => a + b, 0) / n
+  let sxy = 0
+  let sxx = 0
+  for (let i = 0; i < n; i++) {
+    sxy += (xs[i] - mx) * (ys[i] - my)
+    sxx += (xs[i] - mx) ** 2
+  }
+  const slope = sxy / sxx
+  return {slope, intercept: my - slope * mx}
+}
+
 /** 25th percentile with linear interpolation (Python's statistics.quantiles(method='inclusive')). */
 export function lowerQuartile(values: number[]): number {
   const s = [...values].sort((a, b) => a - b)

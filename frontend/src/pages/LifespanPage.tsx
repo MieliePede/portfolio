@@ -14,7 +14,7 @@ import {Collapsible} from '@astryxdesign/core/Collapsible'
 import {Table} from '@astryxdesign/core/Table'
 import {useMediaQuery} from '@astryxdesign/core/hooks'
 import {DataCredits, getJson, type BreedSummary} from '../dogs'
-import {lowerQuartile, pearson} from '../stats'
+import {linearFit, lowerQuartile, pearson} from '../stats'
 
 type Point = BreedSummary & {median_lifespan_years: number; severe_count: number; health_score: number}
 
@@ -50,7 +50,9 @@ const svgStyle: CSSProperties = {width: '100%', height: 'auto', display: 'block'
 // the tooltip floats over the plot; Astryx has no positioning primitive for this (same reason as its templates' inline styles)
 const chartFrame: CSSProperties = {position: 'relative'}
 
-function Scatter({points, view, q1, isGap}: {points: Point[]; view: View; q1: number; isGap: (p: Point) => boolean}) {
+type Fit = {slope: number; intercept: number}
+
+function Scatter({points, view, q1, isGap, fit}: {points: Point[]; view: View; q1: number; isGap: (p: Point) => boolean; fit: Fit}) {
   const navigate = useNavigate()
   const [hover, setHover] = useState<Point | null>(null)
   const W = useMediaQuery('(max-width: 768px)', true) ? 440 : 720
@@ -94,6 +96,16 @@ function Scatter({points, view, q1, isGap}: {points: Point[]; view: View; q1: nu
         <text x={x(q1) - 6} y={M.t + 12} textAnchor="end" fontSize={12} fill="var(--color-text-secondary)">
           shortest-lived quarter
         </text>
+
+        {/* trend line, clipped to the 0-100 score range; dots above it score better than their lifespan predicts */}
+        {view === 'score' &&
+          (() => {
+            const at = (v: number) => fit.slope * v + fit.intercept
+            const xa = Math.max(X0, (axis.min - fit.intercept) / fit.slope)
+            const xb = Math.min(X1, (axis.max - fit.intercept) / fit.slope)
+            // named in the legend; a label at the line's end would sit on the dense top-right cluster
+            return <line x1={x(xa)} y1={y(at(xa))} x2={x(xb)} y2={y(at(xb))} stroke="var(--color-text-secondary)" strokeWidth={2} strokeLinecap="round" opacity={0.6} />
+          })()}
 
         {/* dots: 8px with a 2px surface ring, each with a 24px transparent hit area */}
         {ordered.map(p => {
@@ -167,7 +179,7 @@ function LegendKey({color, label}: {color: string; label: string}) {
 export default function LifespanPage() {
   const [breeds, setBreeds] = useState<BreedSummary[] | null>(null)
   const [error, setError] = useState(false)
-  const [view, setView] = useState<View>('severe')
+  const [view, setView] = useState<View>('score')
 
   useEffect(() => {
     const ctrl = new AbortController()
@@ -191,6 +203,7 @@ export default function LifespanPage() {
       isGap,
       gap: points.filter(isGap).sort((a, b) => a.median_lifespan_years - b.median_lifespan_years),
       r: {severe: pearson(lifespans, points.map(p => p.severe_count)), score: pearson(lifespans, points.map(p => p.health_score))},
+      fit: linearFit(lifespans, points.map(p => p.health_score)),
     }
   }, [breeds])
 
@@ -229,8 +242,8 @@ export default function LifespanPage() {
               <VStack gap={4}>
                 <HStack gap={4} vAlign="center" wrap="wrap">
                   <SegmentedControl value={view} onChange={v => setView(v as View)} label="Compare lifespan with">
-                    <SegmentedControlItem value="severe" label="Severe conditions" />
                     <SegmentedControlItem value="score" label="Health score" />
+                    <SegmentedControlItem value="severe" label="Severe conditions" />
                   </SegmentedControl>
                   <Text type="body" weight="bold">
                     r = {r.toFixed(2)} ({strength(r)}) across {stats.points.length} breeds
@@ -240,15 +253,25 @@ export default function LifespanPage() {
                 <Text type="body" color="secondary">
                   {view === 'severe'
                     ? `Longer-lived breeds tend to have fewer severe conditions on record, but the link is only ${strength(r)}: plenty of breeds break the pattern. Dots are spread slightly up and down within each row so they don't sit on top of each other.`
-                    : `The health score is 65% lifespan (8 years scores 0, 15 years scores 100), so this near-straight line mostly shows how the score is calculated, not a finding. Switch to severe conditions for the independent comparison.`}
+                    : `Health score climbs almost in step with lifespan. Part of that is by design: 65% of the score is lifespan (8 years scores 0, 15 years scores 100). The highlighted breeds sit above the trend line: for their short lives they score well, because none of their conditions on record is severe. Switch to severe conditions to see that part on its own.`}
                 </Text>
 
                 <Card padding={4}>
                   <VStack gap={3}>
-                    <Scatter points={stats.points} view={view} q1={stats.q1} isGap={stats.isGap} />
+                    <Scatter points={stats.points} view={view} q1={stats.q1} isGap={stats.isGap} fit={stats.fit} />
                     <HStack gap={4} wrap="wrap">
                       <LegendKey color={HIGHLIGHT} label={`Shortest-lived quarter (≤ ${stats.q1} yrs) with no severe conditions: ${stats.gap.length}`} />
                       <LegendKey color={CONTEXT} label={`Other breeds: ${stats.points.length - stats.gap.length}`} />
+                      {view === 'score' && (
+                        <HStack gap={1} vAlign="center">
+                          <svg width={16} height={12} aria-hidden="true">
+                            <line x1={2} y1={6} x2={14} y2={6} stroke="var(--color-text-secondary)" strokeWidth={2} strokeLinecap="round" opacity={0.6} />
+                          </svg>
+                          <Text type="supporting" color="secondary">
+                            Trend: typical score for a given lifespan
+                          </Text>
+                        </HStack>
+                      )}
                     </HStack>
                   </VStack>
                 </Card>

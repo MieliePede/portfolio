@@ -1,6 +1,6 @@
 // Run: node tests/stats.test.ts   (Node 22.18+ runs TypeScript directly)
 import assert from 'node:assert/strict'
-import {lowerQuartile, pearson} from '../src/stats.ts'
+import {linearFit, lowerQuartile, pearson} from '../src/stats.ts'
 
 const close = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} != ${b}`)
 
@@ -13,5 +13,13 @@ close(pearson([1, 2, 3, 4, 5], [2, 1, 4, 3, 5]), 0.8)
 close(lowerQuartile([1, 2, 3, 4, 5]), 2)
 close(lowerQuartile([4, 1, 3, 2]), 1.75) // unsorted input, interpolated
 close(lowerQuartile([7]), 7)
+
+// exact line, and Python: statistics.linear_regression([1,2,3,4,5], [2,1,4,3,5]) == (0.8, 0.6)
+let fit = linearFit([0, 1, 2], [1, 3, 5])
+close(fit.slope, 2)
+close(fit.intercept, 1)
+fit = linearFit([1, 2, 3, 4, 5], [2, 1, 4, 3, 5])
+close(fit.slope, 0.8)
+close(fit.intercept, 0.6)
 
 console.log('stats.test: all passed')
