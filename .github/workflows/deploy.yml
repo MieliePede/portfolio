@@ -2,7 +2,8 @@ name: Deploy
 
 # One-time server setup (Ubuntu/Debian with Docker + compose plugin installed):
 #   git clone https://github.com/MieliePede/portfolio.git ~/portfolio
-#   add the public half of SSH_KEY to ~/.ssh/authorized_keys
+#   add the public half of SSH_KEY to ~/.ssh/authorized_keys, locked to the deploy script:
+#     restrict,command="sh /root/portfolio/deploy.sh" ssh-ed25519 AAAA... github-deploy
 #   DNS: A record emile.kifelse.dev -> server IP; open ports 80 and 443
 #
 # Repo secrets (Settings -> Secrets and variables -> Actions):
@@ -37,15 +38,7 @@ jobs:
           echo "$SSH_KEY" > ~/.ssh/id_ed25519
           echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/id_ed25519
-          # password goes over stdin so it never appears in a command line or on the server's disk
-          printf '%s\n' "$POSTGRES_PASSWORD" | ssh "$SSH_USER@$SSH_HOST" '
-            set -e
-            IFS= read -r POSTGRES_PASSWORD
-            [ -n "$POSTGRES_PASSWORD" ] || { echo "POSTGRES_PASSWORD secret is empty"; exit 1; }
-            export POSTGRES_PASSWORD
-            cd ~/portfolio
-            git pull --ff-only
-            docker compose up -d --build --remove-orphans
-            docker image prune -f
-            docker compose ps
-          '
+          # password goes over stdin (read by deploy.sh). Once authorized_keys pins this key to
+          # deploy.sh the server ignores the command below; until then it pulls and runs the script.
+          printf '%s\n' "$POSTGRES_PASSWORD" | ssh "$SSH_USER@$SSH_HOST" \
+            'cd ~/portfolio && git pull --ff-only && sh deploy.sh'
