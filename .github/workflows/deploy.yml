@@ -41,6 +41,7 @@ jobs:
           printf '%s\n' "$POSTGRES_PASSWORD" | ssh "$SSH_USER@$SSH_HOST" '
             set -e
             IFS= read -r POSTGRES_PASSWORD
+            [ -n "$POSTGRES_PASSWORD" ] || { echo "POSTGRES_PASSWORD secret is empty"; exit 1; }
             export POSTGRES_PASSWORD
             cd ~/portfolio
             git pull --ff-only
