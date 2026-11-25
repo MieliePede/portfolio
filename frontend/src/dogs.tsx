@@ -11,6 +11,10 @@ export type BreedSummary = {
   brachycephalic: boolean
   health_score: number | null
   grade: string | null
+  longevity: number | null
+  conformation: number | null
+  burden: number | null
+  severe_count: number | null
   conditions: string[]
   image_url: string | null
   photo: string | null
@@ -18,10 +22,6 @@ export type BreedSummary = {
 
 export type Breed = BreedSummary & {
   weight: string | null
-  longevity: number | null
-  conformation: number | null
-  burden: number | null
-  severe_count: number | null
   source_url: string
   image_credit: string | null
   photos: string[]

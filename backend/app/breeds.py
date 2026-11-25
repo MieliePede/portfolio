@@ -325,7 +325,7 @@ async def sync_loop() -> None:
 router = APIRouter(prefix="/api/breeds")
 
 LIST_FIELDS = ("slug, name, size, median_lifespan_years, brachycephalic, health_score, grade, "
-               "conditions, image_url, photos[1] AS photo")
+               "longevity, conformation, burden, severe_count, conditions, image_url, photos[1] AS photo")
 SORTS = {
     "score": "health_score DESC NULLS LAST, name",
     "lifespan": "median_lifespan_years DESC NULLS LAST, name",

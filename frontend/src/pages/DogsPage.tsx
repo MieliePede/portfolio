@@ -104,6 +104,7 @@ export default function DogsPage() {
             <HStack gap={2}>
               <Button label="← Portfolio" variant="ghost" size="sm" href="/" />
               <Button label="How this was built" variant="ghost" size="sm" href="/projects/dog-breed-health" />
+              <Button label="Lifespan vs health chart" variant="ghost" size="sm" href="/dogs/lifespan" />
             </HStack>
             <Heading level={1}>Dog breed health explorer</Heading>
             <Text type="body" color="secondary">
